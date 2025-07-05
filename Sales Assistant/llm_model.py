@@ -32,10 +32,10 @@ def generate_llm_response(prompt):
 
     try:
         response = requests.post(url, headers=headers, json=payload)
-        response.raise_for_status()  # Raise if response code is not 2xx
+        response.raise_for_status()  
         data = response.json()
 
-        # Check for valid response structure
+    
         if "choices" in data and isinstance(data["choices"], list) and len(data["choices"]) > 0:
             message = data["choices"][0].get("message", {})
             content = message.get("content", "").strip()
@@ -43,17 +43,17 @@ def generate_llm_response(prompt):
             if content:
                 return content
             else:
-                return "⚠️ LLM response had no content."
+                return " LLM response had no content."
         else:
-            print("⚠️ Malformed LLM response:", data)
-            return "⚠️ LLM response was empty or malformed."
+            print(" Malformed LLM response:", data)
+            return " LLM response was empty or malformed."
 
     except requests.exceptions.RequestException as e:
-        print("❌ Network/API Error:", str(e))
-        return "❌ Failed to contact LLM service."
+        print(" Network/API Error:", str(e))
+        return " Failed to contact LLM service."
 
     except (KeyError, IndexError) as e:
-        print("❌ Parsing Error:", str(e))
-        print("🔍 Full response:", response.text)
-        return "❌ Unexpected format in LLM response."
+        print(" Parsing Error:", str(e))
+        print(" Full response:", response.text)
+        return " Unexpected format in LLM response."
 
