@@ -14,14 +14,11 @@ from dotenv import load_dotenv
 load_dotenv()
 DEEPGRAM_API_KEY = os.getenv("DEEPGRAM_API_KEY")
 
-# Mic device to use (set this based on earlier test)
 DEVICE_INDEX = 1
 
-# Global variables
 audio_queue = queue.Queue()
-stop_flag = False  # ✅ global flag instead of st.session_state
+stop_flag = False  
 
-# Session state
 if "transcripts" not in st.session_state:
     st.session_state.transcripts = []
 
@@ -34,7 +31,6 @@ if "mic_status" not in st.session_state:
 if "listening" not in st.session_state:
     st.session_state.listening = False
 
-# Audio callback
 def audio_callback(indata, frames, time, status):
     global stop_flag
     if stop_flag:
@@ -45,7 +41,7 @@ def audio_callback(indata, frames, time, status):
     st.session_state.listening = True
     audio_queue.put(bytes(indata))
 
-# Send mic audio
+
 async def send_audio(ws):
     global stop_flag
     try:
@@ -59,20 +55,19 @@ async def send_audio(ws):
                     await ws.send(json.dumps({"audio_data": encoded_data}))
                     print("📤 Sent audio chunk.")
     except Exception as e:
-        print("❌ Error in send_audio:", e)
+        print("Error in send_audio:", e)
     finally:
-        print("🛑 send_audio stopped.")
+        print("send_audio stopped.")
         st.session_state.mic_status = False
         st.session_state.listening = False
 
-# Receive Deepgram transcripts
 async def receive_transcriptions(ws):
     global stop_flag
-    print("📡 Receiving transcription...")
+    print("Receiving transcription...")
     while not stop_flag:
         try:
             message = await ws.recv()
-            print("📨 Received:", message)
+            print("Received:", message)
             transcript, suggestion = handle_transcription_message(message)
             if transcript and suggestion:
                 timestamp = format_timestamp()
@@ -84,15 +79,15 @@ async def receive_transcriptions(ws):
                     "timestamp": timestamp,
                     "text": suggestion
                 })
-                print("✅ Stored transcript + suggestion.")
+                print("Stored transcript + suggestion.")
         except Exception as e:
-            print("❌ Error in receive_transcriptions:", e)
+            print(" Error in receive_transcriptions:", e)
             break
     st.session_state.mic_status = False
     st.session_state.listening = False
-    print("🛑 receive_transcriptions stopped.")
+    print("receive_transcriptions stopped.")
 
-# Start Deepgram session
+
 async def connect_deepgram():
     global stop_flag
     stop_flag = False
@@ -106,41 +101,40 @@ async def connect_deepgram():
                 receive_transcriptions(ws)
             )
     except Exception as e:
-        print("❌ Error connecting to Deepgram:", e)
+        print(" Error connecting to Deepgram:", e)
         st.session_state.mic_status = False
 
-# ========== Streamlit UI ==========
 
-st.title("🎧 Real-Time Sales Assistant")
+st.title("Real-Time Sales Assistant")
 
 mic_status = st.session_state.mic_status
 listening = st.session_state.listening
 
-status_text = "🔴 Mic OFF"
+status_text = "Mic OFF"
 if mic_status and listening:
-    status_text = "🟢 Mic ON - 🎙️ Listening..."
+    status_text = " Mic ON -  Listening..."
 elif mic_status:
-    status_text = "🟡 Mic ON - Waiting for speech..."
+    status_text = " Mic ON - Waiting for speech..."
 
 st.markdown(f"### {status_text}")
 
 # Start button (async-compatible)
-if st.button("🎙️ Start Listening"):
+if st.button(" Start Listening"):
     asyncio.run(connect_deepgram())
 
 # Stop button
-if st.button("🛑 Stop Listening"):
+if st.button(" Stop Listening"):
     stop_flag = True
     st.session_state.mic_status = False
     st.session_state.listening = False
-    st.warning("🛑 Listening stopped.")
+    st.warning(" Listening stopped.")
 
 # Output
-st.subheader("📝 Transcripts and Suggestions")
+st.subheader(" Transcripts and Suggestions")
 for t, s in zip(st.session_state.transcripts, st.session_state.suggestions):
-    st.markdown(f"**🕒 [{t['timestamp']}]**")
-    st.markdown(f"**🎤 You said:** {t['text']}")
-    st.markdown(f"**🤖 Assistant:** {s['text']}")
+    st.markdown(f"** [{t['timestamp']}]**")
+    st.markdown(f"** You said:** {t['text']}")
+    st.markdown(f"** Assistant:** {s['text']}")
     st.markdown("---")
 
 # Export button
