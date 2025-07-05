@@ -1,0 +1,6 @@
+streamlit
+streamlit-webrtc
+deepgram-sdk
+websockets
+requests
+python-dotenv
